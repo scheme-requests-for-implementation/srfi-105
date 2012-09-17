@@ -48,6 +48,7 @@ subscribe to the list.  You can access previous messages via
       <li>Draft: 2012/08/22-2012/10/22</li>
       <li>Revision: <a href="http://srfi.schemers.org/cgi-bin/viewcvs.cgi/*checkout*/srfi/srfi-105/srfi-105.html?rev=1.3">2012/09/03</a></li>
       <li>Revision: <a href="http://srfi.schemers.org/cgi-bin/viewcvs.cgi/*checkout*/srfi/srfi-105/srfi-105.html?rev=1.4">2012/09/08</a></li>
+      <li>Revision: <a href="http://srfi.schemers.org/cgi-bin/viewcvs.cgi/*checkout*/srfi/srfi-105/srfi-105.html?rev=1.5">2012/09/17</a></li>
 </ul>
 
 <h1><a name="related-srfis">Related SRFIs</a></h1>
@@ -77,7 +78,7 @@ A
 introduces a list whose visual presentation
 is in infix order instead of prefix order.
 For example,
-<samp>{n&nbsp;&gt;&nbsp;2}</samp> &#8658; <samp>(&gt;&nbsp;n&nbsp;2)</samp>,
+<samp>{n&nbsp;&gt;&nbsp;5}</samp> &#8658; <samp>(&gt;&nbsp;n&nbsp;5)</samp>,
 and
 <samp>{a&nbsp;+&nbsp;b&nbsp;+&nbsp;c}</samp> &#8658;
 <samp>(+&nbsp;a&nbsp;b&nbsp;c)</samp>.
@@ -88,8 +89,8 @@ maps cleanly to
 Forms with mixed infix operators and other complications have
 &#8220;<var>nfx</var>&#8221; prepended to
 enable later macro processing, e.g.,
-<samp>{2&nbsp;+&nbsp;3&nbsp;*&nbsp;5}</samp> &#8658;
-<samp>(nfx&nbsp;2&nbsp;+&nbsp;3&nbsp;*&nbsp;5)</samp>.
+<samp>{4&nbsp;+&nbsp;5&nbsp;*&nbsp;6}</samp> &#8658;
+<samp>(nfx&nbsp;4&nbsp;+&nbsp;5&nbsp;*&nbsp;6)</samp>.
 Also, inside a curly-infix list (recursively),
 expressions of the form <samp>f(...)</samp> are simply
 an abbreviation for <samp>(f&nbsp;...)</samp>.</p>
@@ -152,7 +153,7 @@ more operands are handled cleanly.
 E.g., <samp>{a&nbsp;+&nbsp;b&nbsp;+&nbsp;c}</samp> &#8658;
 <samp>(+&nbsp;a&nbsp;b&nbsp;c)</samp>.</p>
 
-<h2><a name="rationale_changereader">Why not macros? Why replace the reader?</a></h2>
+<h2><a name="rationale_changereader">Why not macros? Why modify the reader?</a></h2>
 <p>Many previous systems have implemented &#8220;infix&#8221;
 systems as a named macro or procedure (e.g., <var>INFIX</var>).
 This looks ugly, and it does the wrong thing &#8212; the resulting list
@@ -184,7 +185,7 @@ A macro for infix would very likely confuse
 the <var>syntax-rules</var> form.
 </p>
 
-<h2><a name="rationale_braces">Why use brace characers for infix?</a></h2>
+<h2><a name="rationale_braces">Why use brace characters for infix?</a></h2>
 <p>
 There is no perfect character, but braces (aka curly braces) are pretty close.
 A key issue is that you want a balanced pair of characters to identify infix,
@@ -256,8 +257,8 @@ the notation set(...) is a reasonable alternative.
 
 <h2><a name="rationale_notdifferentsyntax">Why not use a completely different notation inside the expression?</a></h2>
 <p>
-Some past systems have built infix notations into the reader, but the
-infix notation was radically different from normal Lisp notation.
+Some past systems have built infix notations into the reader
+in which the infix notation was radically different from normal Lisp notation.
 For example, the symbol for procedure calls might change, the names of
 variables or procedures might be spelled differently (at least in some cases),
 and so on.
@@ -272,11 +273,15 @@ a completely different meaning inside and outside the parentheses.
 </p>
 <p>
 In contrast, this curly-infix-expression proposal avoids these problems.
+The lists inside use almost exactly the same syntax inside and outside.
 For example, in curly-infix,
 <samp>&#96;{,a&nbsp;+&nbsp;,b}</samp>
 maps cleanly to
 <samp>&#96;(+&nbsp;,a&nbsp;,b)</samp>,
-which works as expected with all macros.</p>
+which works as expected with all macros.
+The main difference is that, in a curly-infix expression, the position of
+the operator in its surface syntax in a different location (infix)
+than its actual final location.</p>
 
 <h2><a name="rationale_noautodetect">Why not autodetect infix?</a></h2>
 <p>Some past efforts tried to automatically detect infix operators,
@@ -307,7 +312,7 @@ constructs like <samp>,op</samp> are legal operators,
 e.g., <samp>{x&nbsp;,op&nbsp;y&nbsp;,op&nbsp;z}</samp>.
 Note that unfortunately if the operator construct contains a cycle, it might not terminate
 if <var>equal?</var> does not terminate in the presence of cycles.
-This was specified this way so that implementors
+This was specified this way so that implementers
 could use the normal Scheme <var>equal?</var> comparison instead of
 having to implement a special comparison operator just for this
 particular case.
@@ -322,6 +327,10 @@ parentheses on the left, and by whitespace on the right).
 It&#8217;s impractical to do otherwise today; most Lisps,
 including Scheme, allow and predefine symbols that include characters (like
 &#8220;<code>-</code>&#8221;) that are typically used for infix operators.
+If infix operators were not delimited, it would be impractical or
+complicated to refer to standard Scheme identifiers.
+By requiring delimiters (as is already true for the rest of Scheme),
+any procedure may be used as an infix operator, not just a fixed list.
 Many developers put space around infix operators even in languages
 that don&#8217;t require them, so syntactically requiring them is no burden.
 In short, it is difficult to allow infix operators
@@ -347,6 +356,10 @@ In practice, we&#8217;ve found that simple infix is all
 that&#8217;s needed most of the time in Lisp-based languages.
 Even in other languages, many developers unnecessarily use
 grouping symbols with infix operators to make their order clear.
+An examination of two Scheme programs written using curly-infix
+(posted 2012-09-14) found that 55/78 (71%) of the top-level
+c-expressions do not embed an opening brace; this means that precedence
+is irrelevant for more than two-thirds of these top-level c-expressions.
 Thus, requiring grouping symbols is less of a
 hardship than it might appear.</p>
 <p>By intentionally <em>not</em>
@@ -446,7 +459,7 @@ would be challenging to get agreement on such a list:
 </p>
 <ol>
 <li>Subscript/down-arrow: sub {Unicode: &#8595;, &#8659;}</li>
-<li>Exponentiation/superscript/up-arrow: **, ^, sup {Unicode: &#8593;, &#8657;}</li>
+<li>Exponentiation/superscript/up-arrow: exp..., **, ^, sup {Unicode: &#8593;, &#8657;}</li>
 <li>Multiplication/division: *, /, div..., mod..., quo...   {Unicode: &#247;, &#215;}</li>
 <li>Addition/subtraction: +, -</li>
 <li>Bitwise and: bit...and, log...and, &amp;</li>
@@ -470,14 +483,17 @@ Many other variations are possible.
 A &#8220;simple math&#8221; ruleset could be devised instead,
 e.g., perhaps it has a shorter list of built-in operators.
 The extant code using curly-infix tends to combine these:
-*, /; +, -; &lt; , &lt;= , &gt;=, &gt; =;
+*, /; +, -; &lt; , &lt;= , &gt;=, &gt; =, &lt;&gt;, eq...;
 <var>and</var>; and <var>or</var>;
-adding exponentiation and implication would make sense for a short list.
+adding exponentiation (e.g., ** and exp...) at a higher precedence level,
+and implication (e.g., -&gt; and =&gt;) would make sense for a short list.
+(The &lt;&gt; isn&#8217;t in many Scheme specifications, but it is odd to omit
+it from a precedence list.)
 </p>
 
 <p>
 The key point is that although this SRFI does not include a precedence system,
-one (such as this one) could be added later.
+one (such as these) could be added later.
 If a precedence system were added, all existing code using simple
 curly-infix expressions, or 0..2 parameter expressions, would work unchanged.
 Even when it&#8217;s not, many &#8220;nfx&#8221; processors would likely generate the
@@ -493,6 +509,27 @@ considered reporting an error if a simple infix
 expression isn&#8217;t provided.
 However, prepending &#8220;<var>nfx</var>&#8221;
 is much more flexible.</p>
+
+<h2><a name="rationale_nfx_undefined">Why is nfx not predefined?</a></h2>
+<p>Implementations should not predefine a meaning for <i>nfx</i>,
+other than possibly to something that always produces an error
+(e.g., raises an exception).
+</p>
+<p>
+If anyone wrote code that depended on some local implementation of nfx,
+then by definition it would become implementation-dependent.
+Yet the point of the &#8220;nfx&#8221; macro is to allow application authors
+the ability to control what to do in that case,
+not to make them unwittingly dependent on an implementation.
+</p>
+<p>
+Of course, an implementation could provide a pre-canned macro that could
+be used as a definition of nfx.  But in that case, importing the
+library would be an explicit act,
+easily seen in the code, instead of being hidden.
+That way, it is easy to determine when an implementation-dependent
+capability is being used.
+</p>
 
 <h2><a name="rationale_specialcases">Why are 0, 1, and 2 parameters special?</a></h2>
 <p>The empty curly-infix list
@@ -540,20 +577,25 @@ for the default reader (e.g., <var>read</var>), read-eval-print loop (REPL),
 and loader (e.g., <var>load</var>).
 Our ideal would be that implementations would
 enable curly-infix in their normal
-invocation, but some implementors may not want to do that.
+invocation, but some implementers may not want to do that.
 For example, if an implementation already uses braces for a
 different local extension, they may not want to immediately
 switch to curly-infix in their default invocation.
-Thus, if implementors choose to not enable curly-infix in their default
+Thus, if implementers choose to not enable curly-infix in their default
 reader, a conventional command line name &#8220;<var>curly-foo</var>&#8221;
-is defined for each implementation <var>foo</var> that enables it.</p>
+is defined for each implementation <var>foo</var> that enables it.
+Implementations may have a host of special command-line invocation names,
+but presumably one or a few are the usual invocation commands; there
+is no requirement to have a curly-foo alternative for a rarely-used
+invocation.</p>
 
 <p>There is simply no single option flag (for example) that
-everyone could agree on to enable this.
+everyone could agree on to enable curly-infix.
 In practice, we expect that implementations will build this capability
 into their default readers and then control it via
 some special flag, but we do
-not want to mandate exactly how it is turned on or passed.</p>
+not want to mandate exactly how it this capability is turned on or
+passed to the reader.</p>
 
 <h2><a name="rationale_marker">Why a marker starting with <var>#!</var> and a letter?</a></h2>
 
@@ -604,8 +646,9 @@ But in practice the <var>#!</var> is almost always
 followed immediately by <code>/</code> or <code>.</code>, and other scripts
 could be trivially fixed to make that so.
 R6RS had a non-normative recommendation to ignore a line that began
-with <var>#!/usr/bin/env</var>, as well
-as a <var>#!&nbsp;/usr/bin/env</var>, but this is non-normative;
+with <var>#!/usr/bin/env</var> (without a space), as well
+as a <var>#!&nbsp;/usr/bin/env</var> (with a space before the slash),
+but this is non-normative;
 an implementation could easily implement <var>#!</var> followed by space
 as an ignored line, and treat <var>#!</var> followed by
 <code>/</code> or <code>.</code> differently.
@@ -631,9 +674,9 @@ that users include an unneeded marker.
 </p>
 
 <p>
-We recommend that <var>#!srfi-105</var> not be the very first characters
+We recommend that <var>#!curly-infix</var> not be the very first characters
 in a file (e.g., put a newline in front of it).
-If the file began with <var>#!srfi-105</var>, is made executable,
+If the file began with <var>#!curly-infix</var>, is made executable,
 and then execution is attempted,
 this might confuse some systems into trying to run the
 program <var>srfi-105</var>.
@@ -648,27 +691,29 @@ that can be built into even trivial Scheme implementations.
 Mandating module support is unnecessary and might inhibit its
 adoption.</p>
 
-<h2><a name="rationale_marker_105">Why the marker <var>#!srfi-105</var>?</a></h2>
+<h2><a name="rationale_marker_105">Why the marker <var>#!curly-infix</var>?</a></h2>
 
 <p>
 There were two competing alternatives:
-<var>#!srfi-105</var> and <var>#!curly-infix</var>
+<var>#!srfi-105</var> and <var>#!curly-infix</var>.
 </p>
 
 <p>
-The <var>#!curly-infix</var> marker
-has the advantage of being more obvious about what is being enabled,
-and some may argue that it is easier to understand.
-However, it is not as obvious <em>where</em> to go to learn more information.
-</p>
-
-<p>
-In contrast,
+The
 <a href="http://srfi.schemers.org/srfi-105/mail-archive/msg00027.html">
-the <var>#!srfi-105</var> recommended during discussion of SRFI-105</a>,
+<var>#!srfi-105</var> was recommended during discussion of SRFI-105</a>,
 in part because it makes it clear where more information can be gathered.
 Also, it suggests that <code>srfi-</code> should be
 the namespace for SRFIs, a plausible convention.
+</p>
+
+<p>
+However, <var>#!curly-infix</var> marker
+has the advantage of being more obvious about what is being enabled.
+Modern search engines make it easy to find where information is, using
+either naming convention.
+Finally, if this capability were accepted into future Scheme specification,
+its name would not need to change.
 </p>
 
 
@@ -1193,11 +1238,11 @@ A simple curly-infix list is mapped by
 the reader into a list with the first even parameter
 followed by the odd parameters.
 E.g.,
-<samp>{n&nbsp;&lt;=&nbsp;2}</samp> &#8658;
-<samp>(&lt;=&nbsp;n&nbsp;2)</samp>,
+<samp>{n&nbsp;&lt;=&nbsp;5}</samp> &#8658;
+<samp>(&lt;=&nbsp;n&nbsp;5)</samp>,
 and
-<samp>{2&nbsp;*&nbsp;3&nbsp;*&nbsp;4}</samp> &#8658;
-<samp>(*&nbsp;2&nbsp;3&nbsp;4)</samp>.</li>
+<samp>{4&nbsp;*&nbsp;5&nbsp;*&nbsp;6}</samp> &#8658;
+<samp>(*&nbsp;4&nbsp;5&nbsp;6)</samp>.</li>
 <li>The <dfn>empty</dfn> curly-infix list
 <samp>{}</samp> is mapped to the empty list <samp>()</samp>.
 An implementation <em>must</em> permit, and not require,
@@ -1268,8 +1313,10 @@ for a datum where <var>e</var> is any datum expression:
 <samp>e(...)</samp> &#8658;
 <samp>(e&nbsp;...)</samp>.
 E.g.,
-<samp>f(1&nbsp;2)</samp> &#8658;
-<samp>(f&nbsp;1&nbsp;2)</samp>,
+<samp>cos(x)</samp> &#8658;
+<samp>(cos&nbsp;x)</samp>,
+<samp>f(a&nbsp;b)</samp> &#8658;
+<samp>(f&nbsp;a&nbsp;b)</samp>,
 <samp>exit()</samp> &#8658;
 <samp>(exit)</samp>, and
 <samp>read(.&nbsp;port)</samp> &#8658;
@@ -1311,10 +1358,10 @@ E.g.,
 <samp>((f&nbsp;(-&nbsp;n&nbsp;1))&nbsp;x)</samp>
 </li>
 </ol>
-<p>Here are some examples of c-expressions (note all operators in curly-infix are delimited):</p>
+<p>Here are some examples of c-expressions (note that all operators in curly-infix are delimited):</p>
 <ul>
-<li><samp>{n&nbsp;&lt;=&nbsp;2}</samp> &#8658;
-    <samp>(&lt;=&nbsp;n&nbsp;2)</samp></li>
+<li><samp>{n&nbsp;&lt;=&nbsp;5}</samp> &#8658;
+    <samp>(&lt;=&nbsp;n&nbsp;5)</samp></li>
 <li><samp>{a&nbsp;+&nbsp;b&nbsp;+&nbsp;c}</samp>
 &#8658;
 <samp>(+&nbsp;a&nbsp;b&nbsp;c)</samp></li>
@@ -1334,9 +1381,9 @@ E.g.,
 if there is support for the SRFI-38 external representation
 for data with shared structure
 <li>
-<samp>{length(x)&nbsp;&gt;=&nbsp;3}</samp>
+<samp>{length(x)&nbsp;&gt;=&nbsp;6}</samp>
 &#8658;
-<samp>(&gt;=&nbsp;(length&nbsp;x)&nbsp;3)</samp>
+<samp>(&gt;=&nbsp;(length&nbsp;x)&nbsp;6)</samp>
 </ul>
 
 <p>A <dfn>curly-infix reader</dfn> is a datum reader
@@ -1347,7 +1394,7 @@ include the braces &#8220;<code>{</code>&#8221; and
 
 <p>
 An implementation of this SRFI <em>must</em> accept the marker
-<var>#!srfi-105</var> followed by a whitespace character.
+<var>#!curly-infix</var> followed by a whitespace character.
 This marker (including the trailing whitespace character)
 is consumed and considered whitespace;
 after reading this marker, the reader <em>must</em> accept
@@ -1384,7 +1431,7 @@ have their standard readers be curly-infix enabled,
 but this is <em>not</em> required.
 If the standard readers are not curly-infix enabled
 in an implementation&#8217;s default invocation,
-then if it can be invoked from a command line via the command
+then if it has a default command line invocation line using some command
 &#8220;<var>foo</var>&#8221;, the implementation
 <em>must</em> provide an alternative command &#8220;<var>curly-foo</var>&#8221;
 (the command prefixed with &#8220;<code>curly-</code>&#8221;) in which
@@ -1392,33 +1439,32 @@ its standard readers <em>are</em> curly-infix enabled.
 In addition, if the implementation is invokable as
 a graphical user interface (GUI), it
 <em>must</em> provide a documented means to ensure that its
-standard readers are curly-infix enabled.
+standard readers are curly-infix enabled on startup.
 </p>
 
 <p>
 An implementation <em>must not</em>, by default, bind the symbol
 &#8220;<var>nfx</var>&#8221; to a procedure, macro, or syntax
 that <em>cannot</em> be overridden.
+An implementation <em>should not</em> bind the symbol
+&#8220;<var>nfx</var>&#8221; to a procedure, macro, or syntax in the
+default environment, with the exception that it
+may bind it by default to something that produces an error.
 This symbol is reserved for use by library writers
 (in the case of a library-based implementation of this SRFI,
 this symbol is reserved for use by <em>other</em> libraries)
 and application writers.
 </p>
 <p>
-<em>However</em>, an implementation <em>may</em> provide a default
-<em>library</em> that binds the &#8220;<var>nfx</var>&#8221; symbol
+<em>However</em>, an implementation <em>may</em> provide one or more
+<em>libraries</em> that when imported
+bind the &#8220;<var>nfx</var>&#8221; symbol
 (as it is then a library, this case actually falls under
 the &#8220;reserved for use by library writers&#8221; clause above).
 Application writers and other library writers
-using that implementation
-are then free to use or not use
-the implementation&#8217;s provided &#8220;<var>nfx</var>&#8221;.
-An implementation may even provide more than one, if they so desire.
-For a library-based implementation of this SRFI,
-any &#8220;<var>nfx</var>&#8221; implementation or
-implementations <em>may</em> be provided,
-as long as the &#8220;<var>nfx</var>&#8221; symbol can be
-rebound by users of that library.
+using that implementation are then free to use or not use
+the implementation&#8217;s provided &#8220;<var>nfx</var>&#8221; as provided
+by those libraries.
 </p>
 
 <p>
@@ -1438,13 +1484,24 @@ until its matching &#8220;<code>}</code>&#8221;, and then calls <var>process-cur
 defined below. We recommend that implementations <em>always</em> do
 this, but an implementation must at least activate this behavior
 when &#8220;<var>curly-foo</var>&#8221; is invoked
-or when they read <var>#!srfi-105</var> followed by whitespace.
+or when they read <var>#!curly-infix</var> followed by whitespace.
 <p>This reference implementation is SRFI type 2: &#8220;A
 mostly-portable solution that uses some kind of hooks provided in
 some Scheme interpreter/compiler. In this case, a detailed
 specification of the hooks must be included so that the SRFI is
 self-contained.&#8221;</p>
+<p>For clarity, this is split into two parts:
+(1) code that implements the SRFI, and (2) a demo (with support procedures)
+to show its use.
+This SRFI is trivial to implement, so most of the code is actually in
+part 2.
+</p>
+<h2>Key code to implement SRFI</h2>
 <pre>
+  ; ------------------------------
+  ; Curly-infix support procedures
+  ; ------------------------------
+
   ; Return true if lyst has an even # of parameters, and the (alternating)
   ; first parameters are "op".  Used to determine if a longer lyst is infix.
   ; If passed empty list, returns true (so recursion works correctly).
@@ -1456,7 +1513,6 @@ self-contained.&#8221;</p>
       ((not (pair? (cdr lyst)))  #f) ; Wrong # of parameters or improper
       (#t   (even-and-op-prefix? op (cddr lyst))))) ; recurse.
 
-
   ; Return true if the lyst is in simple infix format
   ; (and thus should be reordered at read time).
   (define (simple-infix-list? lyst)
@@ -1467,7 +1523,7 @@ self-contained.&#8221;</p>
                              ; this way for performance)
       (even-and-op-prefix? (cadr lyst) (cdr lyst)))) ; true if rest is simple
 
-  ; Return alternating parameters in a list (1st, 3rd, 5th, etc.)
+  ; Return alternating parameters in a lyst (1st, 3rd, 5th, etc.)
   (define (alternating-parameters lyst)
     (if (or (null? lyst) (null? (cdr lyst)))
       lyst
@@ -1499,17 +1555,17 @@ self-contained.&#8221;</p>
   ; stop-char needs to be closing paren, closing bracket, or closing brace.
   ; This is like read-delimited-list of Common Lisp.
   ; This implements a useful extension: (. b) returns b.
-  (define (my-read-delimited-list stop-char port)
+  (define (my-read-delimited-list my-read stop-char port)
     (let*
       ((c   (peek-char port)))
       (cond
         ((eof-object? c) (read-error "EOF in middle of list") '())
         ((eqv? c #\;)
           (consume-to-eol port)
-          (my-read-delimited-list stop-char port))
+          (my-read-delimited-list my-read stop-char port))
         ((my-char-whitespace? c)
           (read-char port)
-          (my-read-delimited-list stop-char port))
+          (my-read-delimited-list my-read stop-char port))
         ((char=? c stop-char)
           (read-char port)
           '())
@@ -1517,10 +1573,10 @@ self-contained.&#8221;</p>
           (read-char port)
           (read-error "Bad closing character"))
         (#t
-          (let ((datum (neoteric-read port)))
+          (let ((datum (my-read port)))
             (cond
                ((eq? datum '.)
-                 (let ((datum2 (neoteric-read port)))
+                 (let ((datum2 (my-read port)))
                    (consume-whitespace port)
                    (cond
                      ((eof-object? datum2)
@@ -1533,7 +1589,7 @@ self-contained.&#8221;</p>
                        datum2))))
                (#t
                    (cons datum
-                     (my-read-delimited-list stop-char port)))))))))
+                     (my-read-delimited-list my-read stop-char port)))))))))
 
 
   ; Implement neoteric-expression's prefixed (), [], and {}.
@@ -1550,13 +1606,13 @@ self-contained.&#8221;</p>
           ((char=? c #\( ) ; Implement f(x).
             (read-char port)
             (neoteric-process-tail port
-                (cons prefix (my-read-delimited-list #\) port))))
+                (cons prefix (my-read-delimited-list neoteric-read-real #\) port))))
           ((char=? c #\[ )  ; Implement f[x]
             (read-char port)
             (neoteric-process-tail port
                   (cons 'bracketaccess
                     (cons prefix
-                      (my-read-delimited-list #\] port)))))
+                      (my-read-delimited-list neoteric-read-real #\] port)))))
           ((char=? c #\{ )  ; Implement f{x}. Balance }
             (neoteric-process-tail port
               (let ((tail (neoteric-read port)))
@@ -1565,74 +1621,88 @@ self-contained.&#8221;</p>
                   (list prefix tail)))))
           (#t prefix))))
 
-  (define (neoteric-read . port)
-    (if (null? port)
-      (neoteric-read-real (current-input-port))
-      (neoteric-read-real (car port))))
-  
-  ; This is the "real" implementation of neoteric-read
-  ; (neoteric-read just figures out the port and calls neoteric-read-real).
-  ; It implements an entire reader, as a demonstration, but if you can
+
+  ; To implement neoteric-expressions, modify the reader so
+  ; that [] and {} are also delimiters, and make the reader do this:
+  ; (let* ((prefix
+  ;           read-expression-as-usual
+  ;       ))
+  ;   (if (eof-object? prefix)
+  ;     prefix
+  ;     (neoteric-process-tail port prefix)))
+
+  ; Modify the main reader so that [] and {} are also delimiters, and so
+  ; that when #\{ is detected, read using my-read-delimited-list
+  ; any list from that port until its matching #\}, then process
+  ; that list with "process-curly", like this:
+  ;   (process-curly (my-read-delimited-list #\} port))
+
+</pre>
+
+<h2>Demo code</h2>
+
+<pre>
+  ; ------------------------------------------------
+  ; Demo procedures to implement curly-infix and neoteric readers
+  ; ------------------------------------------------
+
+  ; This implements an entire reader, as a demonstration, but if you can
   ; update your existing reader you should just update that instead.
   ; This is a simple R5RS reader, with a few minor (common) extensions.
-  ; The key part is that it implements [] and {} as delimiters, and
-  ; after it reads in some datum (the "prefix"), it calls
-  ; neoteric-process-tail to see if there's a "tail".
-  (define (neoteric-read-real port)
+  ; The "my-read" is called if it has to recurse.
+  (define (underlying-read my-read port)
     (let*
-      ((c (peek-char port))
-       (prefix
-         ; This cond is a normal Scheme reader, puts result in "prefix"
-         ; This implements "read-expression-as-usual" as described above.
+      ((c (peek-char port)))
         (cond
           ((eof-object? c) c)
           ((char=? c #\;)
             (consume-to-eol port)
-            (neoteric-read-real port))
+            (my-read port))
           ((my-char-whitespace? c)
             (read-char port)
-            (neoteric-read-real port))
+            (my-read port))
           ((char=? c #\( )
              (read-char port)
-             (my-read-delimited-list #\) port))
-          ((char=? c #\) )
-             (read-char port)
-             (read-error "Closing parenthesis without opening")
-             (neoteric-read-real port))
+             (my-read-delimited-list my-read #\) port))
           ((char=? c #\[ )
              (read-char port)
-             (my-read-delimited-list #\] port))
-          ((char=? c #\] )
-             (read-char port)
-             (read-error "Closing bracket without opening")
-             (neoteric-read-real port))
+             (my-read-delimited-list my-read #\] port))
           ((char=? c #\{ )
             (read-char port)
             (process-curly
-                (my-read-delimited-list #\} port)))
+                (my-read-delimited-list neoteric-read-real #\} port)))
+          ; Handle missing (, [, { :
+          ((char=? c #\) )
+             (read-char port)
+             (read-error "Closing parenthesis without opening")
+             (my-read port))
+          ((char=? c #\] )
+             (read-char port)
+             (read-error "Closing bracket without opening")
+             (my-read port))
           ((char=? c #\} )
              (read-char port)
              (read-error "Closing brace without opening")
-             (neoteric-read-real port))
+             (my-read port))
           ((char=? c #\") ; Strings are delimited by ", so can call directly
             (default-scheme-read port))
           ((char=? c #\')
             (read-char port)
-            (list 'quote (neoteric-read-real port)))
+            (list 'quote (my-read port)))
           ((char=? c #\`)
             (read-char port)
-            (list 'quasiquote (neoteric-read-real port)))
+            (list 'quasiquote (my-read port)))
           ((char=? c #\,)
             (read-char port)
               (cond
                 ((char=? #\@ (peek-char port))
                   (read-char port)
-                  (list 'unquote-splicing (neoteric-read-real port)))
+                  (list 'unquote-splicing (my-read port)))
                (#t
-                (list 'unquote (neoteric-read-real port)))))
+                (list 'unquote (my-read port)))))
           ((ismember? c digits) ; Initial digit.
             (read-number port '()))
-          ((char=? c #\#) (process-sharp port))
+          ((char=? c #\#) (process-sharp my-read port))
           ((char=? c #\.) (process-period port))
           ((or (char=? c #\+) (char=? c #\-))  ; Initial + or -
              (read-char port)
@@ -1645,10 +1715,75 @@ self-contained.&#8221;</p>
             (string->symbol (fold-case-maybe port
               (list->string
                 (read-until-delim port neoteric-delimiters))))))))
-      ; Here's the big change to implement neoteric-expressions:
+
+  (define (curly-infix-read-real port)
+    (underlying-read curly-infix-read-real port))
+
+  (define (curly-infix-read . port)
+    (if (null? port)
+      (curly-infix-read-real (current-input-port))
+      (curly-infix-read-real (car port))))
+
+  ; Here's a real neoteric reader.
+  ; The key part is that it implements [] and {} as delimiters, and
+  ; after it reads in some datum (the "prefix"), it calls
+  ; neoteric-process-tail to see if there's a "tail".
+  (define (neoteric-read-real port)
+    (let* ((prefix (underlying-read neoteric-read-real port)))
       (if (eof-object? prefix)
         prefix
         (neoteric-process-tail port prefix))))
+
+  (define (neoteric-read . port)
+    (if (null? port)
+      (neoteric-read-real (current-input-port))
+      (neoteric-read-real (car port))))
+
+
+  ; ------------------
+  ; Support procedures
+  ; ------------------
+
+  (define digits '(#\0 #\1 #\2 #\3 #\4 #\5 #\6 #\7 #\8 #\9))
+  (define linefeed (integer->char #x000A))        ; #\newline aka \n.
+  (define carriage-return (integer->char #x000D)) ; \r.
+  (define tab (integer->char #x0009))
+  (define line-tab (integer->char #x000b))
+  (define form-feed (integer->char #x000c))
+  (define line-ending-chars (list linefeed carriage-return))
+  (define whitespace-chars
+    (list tab linefeed line-tab form-feed carriage-return #\space))
+
+  ; Should we fold case of symbols by default?
+  ; #f means case-sensitive (R6RS); #t means case-insensitive (R5RS).
+  ; Here we'll set it to be case-sensitive, which is consistent with R6RS
+  ; and guile, but NOT with R5RS.  Most people won't notice, I
+  ; _like_ case-sensitivity, and the latest spec is case-sensitive,
+  ; so let's start with #f (case-sensitive).
+  ; This doesn't affect character names; as an extension,
+  ; We always accept arbitrary case for them, e.g., #\newline or #\NEWLINE.
+  (define foldcase-default #f)
+
+  ; Returns a true value (not necessarily #t) if char ends a line.
+  (define (char-line-ending? char) (memq char line-ending-chars))
+
+  ; Returns true if item is member of lyst, else false.
+  (define (ismember? item lyst)
+     (pair? (member item lyst)))
+
+  ; Create own version, in case underlying implementation omits some.
+  (define (my-char-whitespace? c)
+    (or (char-whitespace? c) (ismember? c whitespace-chars)))
+
+  ; If fold-case is active on this port, return string "s" in folded case.
+  ; Otherwise, just return "s".  This is needed to support our
+  ; foldcase-default configuration value when processing symbols.
+  ; The "string-foldcase" procedure isn't everywhere,
+  ; so we use "string-downcase".
+  (define (fold-case-maybe port s)
+    (if foldcase-default
+      (string-downcase s)
+      s))
 
   (define (consume-to-eol port)
     ; Consume every non-eol character in the current line.
@@ -1661,12 +1796,170 @@ self-contained.&#8221;</p>
           (read-char port)
           (consume-to-eol port)))))
 
-  ; Modify the main reader so that [] and {} are also delimiters, and so
-  ; that when #\{ is detected, read using my-read-delimited-list
-  ; any list from that port until its matching #\}, then process
-  ; that list with "process-curly", like this:
-  ;   (process-curly (my-read-delimited-list #\} port))
+  (define (consume-whitespace port)
+    (let ((char (peek-char port)))
+      (cond
+        ((eof-object? char) char)
+        ((eqv? char #\;)
+          (consume-to-eol port)
+          (consume-whitespace port))
+        ((my-char-whitespace? char)
+          (read-char port)
+          (consume-whitespace port)))))
 
+  ; Identifying the list of delimiter characters is harder than you'd think.
+  ; This list is based on R6RS section 4.2.1, while adding [] and {},
+  ; but removing "#" from the delimiter set.
+  ; NOTE: R6RS has "#" has a delimiter.  However, R5RS does not, and
+  ; R7RS probably will not - http://trac.sacrideo.us/wg/wiki/WG1Ballot3Results
+  ; shows a strong vote AGAINST "#" being a delimiter.
+  ; Having the "#" as a delimiter means that you cannot have "#" embedded
+  ; in a symbol name, which hurts backwards compatibility, and it also
+  ; breaks implementations like Chicken (has many such identifiers) and
+  ; Gambit (which uses this as a namespace separator).
+  ; Thus, this list does NOT have "#" as a delimiter, contravening R6RS
+  ; (but consistent with R5RS, probably R7RS, and several implementations).
+  ; Also - R7RS draft 6 has "|" as delimiter, but we currently don't.
+  (define neoteric-delimiters
+     (append (list #\( #\) #\[ #\] #\{ #\}  ; Add [] {}
+                   #\" #\;)                 ; Could add #\# or #\|
+             whitespace-chars))
+
+  (define (read-until-delim port delims)
+    ; Read characters until eof or a character in "delims" is seen.
+    ; Do not consume the eof or delimiter.
+    ; Returns the list of chars that were read.
+    (let ((c (peek-char port)))
+      (cond
+         ((eof-object? c) '())
+         ((ismember? c delims) '())
+         (#t (cons (read-char port) (read-until-delim port delims))))))
+
+  (define (read-error message)
+    (display "Error: ")
+    (display message)
+    (display "\n")
+    '())
+
+  (define (read-number port starting-lyst)
+    (string->number (list->string
+      (append starting-lyst
+        (read-until-delim port neoteric-delimiters)))))
+
+  ; detect #| or |#
+  (define (nest-comment port)
+    (let ((c (read-char port)))
+      (cond
+        ((eof-object? c))
+        ((char=? c #\|)
+          (let ((c2 (peek-char port)))
+            (if (char=? c2 #\#)
+                (read-char port)
+                (nest-comment port))))
+        ((char=? c #\#)
+          (let ((c2 (peek-char port)))
+            (if (char=? c2 #\|)
+                (begin
+                  (read-char port)
+                  (nest-comment port)))
+            (nest-comment port)))
+        (#t
+          (nest-comment port)))))
+
+  (define (process-sharp my-read port)
+    ; We've peeked a # character.  Returns what it represents.
+    (read-char port) ; Remove #
+    (cond
+      ((eof-object? (peek-char port)) (peek-char port)) ; If eof, return eof.
+      (#t
+        ; Not EOF. Read in the next character, and start acting on it.
+        (let ((c (read-char port)))
+          (cond
+            ((char-ci=? c #\t)  #t)
+            ((char-ci=? c #\f)  #f)
+            ((ismember? c '(#\i #\e #\b #\o #\d #\x
+                            #\I #\E #\B #\O #\D #\X))
+              (read-number port (list #\# (char-downcase c))))
+            ((char=? c #\( )  ; Vector.
+              (list->vector (my-read-delimited-list my-read #\) port)))
+            ((char=? c #\\) (process-char port))
+            ; This supports SRFI-30 #|...|#
+            ((char=? c #\|) (nest-comment port) (my-read port))
+            ; If #!xyz, consume xyz and recurse.
+            ; In a real reader, consider handling "#! whitespace" per SRFI-22,
+            ; and consider "#!" followed by / or . as a comment until "!#".
+            ((char=? c #\!) (my-read port) (my-read port))
+            (#t (read-error "Unsupported # extension")))))))
+
+  (define (process-period port)
+    ; We've peeked a period character.  Returns what it represents.
+    (read-char port) ; Remove .
+    (let ((c (peek-char port)))
+      (cond
+        ((eof-object? c) '.) ; period eof; return period.
+        ((ismember? c digits)
+          (read-number port (list #\.)))  ; period digit - it's a number.
+        (#t
+          ; At this point, Scheme only requires support for "." or "...".
+          ; As an extension we can support them all.
+          (string->symbol
+            (fold-case-maybe port
+              (list->string (cons #\.
+                (read-until-delim port neoteric-delimiters)))))))))
+
+  (define (process-char port)
+    ; We've read #\ - returns what it represents.
+    (cond
+      ((eof-object? (peek-char port)) (peek-char port))
+      (#t
+        ; Not EOF. Read in the next character, and start acting on it.
+        (let ((c (read-char port))
+              (rest (read-until-delim port neoteric-delimiters)))
+          (cond
+            ((null? rest) c) ; only one char after #\ - so that's it!
+            (#t
+              (let ((rest-string (list->string (cons c rest))))
+                (cond
+                  ; Implement R6RS character names, see R6RS section 4.2.6.
+                  ; As an extension, we will ALWAYS accept character names
+                  ; of any case, no matter what the case-folding value is.
+                  ((string-ci=? rest-string "space") #\space)
+                  ((string-ci=? rest-string "newline") #\newline)
+                  ((string-ci=? rest-string "tab") tab)
+                  ((string-ci=? rest-string "nul") (integer->char #x0000))
+                  ((string-ci=? rest-string "alarm") (integer->char #x0007))
+                  ((string-ci=? rest-string "backspace") (integer->char #x0008))
+                  ((string-ci=? rest-string "linefeed") (integer->char #x000A))
+                  ((string-ci=? rest-string "vtab") (integer->char #x000B))
+                  ((string-ci=? rest-string "page") (integer->char #x000C))
+                  ((string-ci=? rest-string "return") (integer->char #x000D))
+                  ((string-ci=? rest-string "esc") (integer->char #x001B))
+                  ((string-ci=? rest-string "delete") (integer->char #x007F))
+                  ; Additional character names as extensions:
+                  ((string-ci=? rest-string "ht") tab)
+                  ((string-ci=? rest-string "cr") (integer->char #x000d))
+                  ((string-ci=? rest-string "bs") (integer->char #x0008))
+                  (#t (read-error "Invalid character name"))))))))))
+
+
+  ; Record the original read location, in case it's changed later:
+  (define default-scheme-read read)
+
+  ; --------------
+  ; Demo of reader
+  ; --------------
+
+  ; repeatedly read in curly-infix and write traditional s-expression.
+  (define (process-input)
+    (let ((result (curly-infix-read)))
+      (cond
+        ((not (eof-object? result))
+          (write result)
+          (display "\n")
+          ; (force-output) ; flush, so can interactively control something else
+          (process-input)))))
+
+  (process-input)
 </pre>
 
 <h1><a name="references">References</a></h1>
