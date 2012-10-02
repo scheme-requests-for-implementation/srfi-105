@@ -51,7 +51,9 @@ subscribe to the list.  You can access previous messages via
       <li>Revision: <a href="http://srfi.schemers.org/cgi-bin/viewcvs.cgi/*checkout*/srfi/srfi-105/srfi-105.html?rev=1.5">2012/09/17</a></li>
       <li>Revision: <a href="http://srfi.schemers.org/cgi-bin/viewcvs.cgi/*checkout*/srfi/srfi-105/srfi-105.html?rev=1.6">2012/09/19</a></li>
       <li>Revision: <a href="http://srfi.schemers.org/cgi-bin/viewcvs.cgi/*checkout*/srfi/srfi-105/srfi-105.html?rev=1.7">2012/09/27</a></li>
+      <li>Revision: <a href="http://srfi.schemers.org/cgi-bin/viewcvs.cgi/*checkout*/srfi/srfi-105/srfi-105.html?rev=1.8">2012/10/02</a></li>
 </ul>
+
 <h1><a name="related-srfis">Related SRFIs</a></h1>
 <p>None</p>
 
@@ -163,10 +165,27 @@ for details on why the notation is designed the way it is.
 
 
 <h1><a name="specification">Specification</a></h1>
-<p>&#8220;<dfn>Curly-infix-expressions</dfn>&#8221; or &#8220;<dfn>c-expressions</dfn>&#8221; are
-s-expressions with an additional notation: The curly-infix list.
+<p>
+The key words
+&#8220;<em>MUST</em>&#8221;,
+&#8220;<em>MUST NOT</em>&#8221;,
+&#8220;<em>REQUIRED</em>&#8221;,
+&#8220;<em>SHALL</em>&#8221;,
+&#8220;<em>SHALL NOT</em>&#8221;,
+&#8220;<em>SHOULD</em>&#8221;,
+&#8220;<em>SHOULD NOT</em>&#8221;,
+&#8220;<em>RECOMMENDED</em>&#8221;,
+&#8220;<em>MAY</em>&#8221;,
+and &#8220;<em>OPTIONAL</em>&#8221; in this
+document are to be interpreted as described in
+<a href="http://www.ietf.org/rfc/rfc2119.txt">RFC 2119</a>.
+</p>
+
+<p>&#8220;<dfn>Curly-infix-expressions</dfn>&#8221; (aka &#8220;<dfn>c-expressions</dfn>&#8221;) are
+s-expressions with an additional supported notation:
+The curly-infix list.
 A curly-infix list is syntactically almost identical to a regular list,
-but it is surrounded by braces instead of by parentheses, and instead of
+but it is surrounded by a matched pair of braces instead of by a pair of parentheses, and instead of
 a sequence of s-expressions it contains a sequence of
 neoteric-expressions (which add support for formats like <samp>f(x)</samp>).
 Once a curly-infix list is read, it is mapped differently than a
@@ -177,7 +196,7 @@ parameters, at least three parameters, and all even parameters are
 &#8220;<var>equal?</var>&#8221;.
 If there is more than one even parameter, and
 an even parameter contains a cycle, then
-the <var>equal?</var> comparison <em>must</em> terminate
+the <var>equal?</var> comparison <em>MUST</em> terminate
 if <var>equal?</var> terminates (otherwise
 the comparison <em>may</em> terminate).
 A simple curly-infix list is mapped by
@@ -191,7 +210,7 @@ and
 <samp>(*&nbsp;4&nbsp;5&nbsp;6)</samp>.</li>
 <li>The <dfn>empty</dfn> curly-infix list
 <samp>{}</samp> is mapped to the empty list <samp>()</samp>.
-An implementation <em>must</em> permit, and not require,
+An implementation <em>MUST</em> permit, and not require,
 whitespace between the braces in an empty curly-infix list.</li>
 <li>An <dfn>escaping</dfn> curly-infix list
 <samp>{e}</samp> is mapped to <samp>e</samp>.
@@ -209,7 +228,7 @@ E.g.,
 <samp>{.&nbsp;e}</samp> to <samp>e</samp>.)
 </li>
 <li>Any other curly-infix list (including all other improper lists) is
-<dfn>mixed</dfn>.  A mixed curly-infix list <em>must</em> be mapped to that list with &#8220;<var>nfx</var>&#8221; added to its front.
+<dfn>mixed</dfn>.  A mixed curly-infix list <em>MUST</em> be mapped to that list with &#8220;<var>nfx</var>&#8221; added to its front.
 E.g.,
 <samp>{q&nbsp;+&nbsp;r&nbsp;*&nbsp;s}</samp>
 is mapped to
@@ -242,15 +261,8 @@ a table to force a reasonable format.
 </tr>
 </table>
 
-<!--
-it begins with &#8220;{&#8221;, optional whitespace,
-a sequence of zero or more whitespace-separated
-<em>neoteric-expressions</em>, optionally more whitespace (if there
-were any neoteric-expressions), and
-a matching &#8220;}&#8221;.
--->
 <p>
-A &#8220;<dfn>neoteric-expression</dfn>&#8221; or &#8220;<dfn>n-expression</dfn>&#8221;
+A &#8220;<dfn>neoteric-expression</dfn>&#8221; (aka &#8220;<dfn>n-expression</dfn>&#8221;)
 is a curly-infix-expression, with the following additional syntaxes
 for a datum where <var>e</var> is any datum expression:
 </p>
@@ -265,8 +277,8 @@ E.g.,
 <samp>(f&nbsp;a&nbsp;b)</samp>,
 <samp>exit()</samp> &#8658;
 <samp>(exit)</samp>, and
-<samp>read(.&nbsp;port)</samp> &#8658;
-<samp>(read&nbsp;.&nbsp;port)</samp>.</li>
+<samp>read(.&nbsp;options)</samp> &#8658;
+<samp>(read&nbsp;.&nbsp;options)</samp>.</li>
 <li>
 <samp>e{}</samp> &#8658; <samp>(e)</samp>
 when there are zero or more whitespace characters
@@ -285,8 +297,8 @@ and
 <samp>(g&nbsp;(-&nbsp;x))</samp>.</li>
 <li><samp>e[...]</samp> &#8658;
 <samp>($bracket-apply$&nbsp;e&nbsp;...)</samp></li>
-<li>There must be no whitespace between <samp>e</samp> and the open paired character.</li>
-<li>An unprefixed <samp>(&nbsp;.&nbsp;e)</samp> must evaluate as <samp>e</samp>.</li>
+<li>There <em>MUST NOT</em> be whitespace between <samp>e</samp> and the open paired character for this mapping to apply.</li>
+<li>An unprefixed <samp>(&nbsp;.&nbsp;e)</samp> <em>MUST</em> evaluate as <samp>e</samp>.</li>
 <li>
 These recurse within lists,
 so lists contains sequences
@@ -304,6 +316,13 @@ E.g.,
 <samp>((f&nbsp;(-&nbsp;n&nbsp;1))&nbsp;x)</samp>
 </li>
 </ol>
+
+<p>
+Note that any s-expression is also an n-expression,
+because n-expressions include c-expressions
+and c-expressions include s-expressions.
+</p>
+
 <p>Here are some examples of c-expressions (note that all operators in curly-infix are delimited):</p>
 <ul>
 <li><samp>{n&nbsp;&lt;=&nbsp;5}</samp> &#8658;
@@ -334,88 +353,77 @@ for data with shared structure
 
 <p>A <dfn>curly-infix reader</dfn> is a datum reader
 that can correctly read and map curly-infix-expressions.
-A curly-infix reader <em>must</em>
+A curly-infix reader <em>MUST</em>
 include the braces &#8220;<code>{</code>&#8221; and
 &#8220;<code>}</code>&#8221; as delimiters.</p>
 
 <p>
-An implementation of this SRFI <em>must</em> accept the marker
-<var>#!curly-infix</var> followed by a whitespace character.
+An implementation of this SRFI <em>MUST</em> accept
+the marker <var>#!curly-infix</var> followed by a whitespace character
+in its standard datum readers (e.g., <var>read</var> and, if applicable,
+the default implementation REPL).
 This marker (including the trailing whitespace character)
-is consumed and considered whitespace;
-after reading this marker, the reader <em>must</em> accept
+<em>MUST</em> be consumed and considered whitespace.
+After reading this marker, the reader <em>MUST</em> accept
 curly-infix expressions in subsequent datums
 until it reaches an end-of-file or some other conflicting marker
 (no conflicting marker is specified here).
-We encourage implementations to <em>always</em>
-implement curly-infix expressions, even when the marker is not received.
-Applications should include this marker before
+</p>
+
+<p>
+Implementations of this SRFI <em>SHOULD</em>
+implement curly-infix expressions in their datum readers by default,
+even when the marker is not received.
+Portable applications <em>SHOULD</em> include this marker before
 using curly-infix expressions, typically near the top of a file.
-We recommend that portable applications do <em>not</em>
-use this marker as the first characters
-of a file (e.g., a newline should precede it),
+Portable applications <em>SHOULD NOT</em>
+use this marker as the very first characters
+of a file (e.g., it could be preceded by a newline),
 to prevent misinterpretation as an executable script header.
 </p>
 
-<p>The &#8220;<dfn>standard readers</dfn>&#8221;
-are the datum reader used by the REPL,
-the datum readers defined by the relevant Scheme standards
-(such as &#8220;<var>read</var>&#8221; and where applicable
-&#8220;<var>get-datum</var>&#8221;),
-and the readers used to load user-supplied code
-as defined by the relevant Scheme standards
-(e.g., the reader used by &#8220;<var>load</var>&#8221;
-and module-loading mechanisms for user code).
-The standard readers are <dfn>curly-infix enabled</dfn> if the standard
-readers are curly-infix readers.</p>
-
 <p>
-An implementation of this SRFI <em>must</em>
-have its standard readers be curly-infix enabled.
-We encourage implementations&#8217; <em>default</em> invocation to
-have their standard readers be curly-infix enabled,
-but this is <em>not</em> required.
-If the standard readers are not curly-infix enabled
-in an implementation&#8217;s default invocation,
-then if it has a default command line invocation line using some command
-&#8220;<var>foo</var>&#8221;, the implementation
-<em>must</em> provide an alternative command &#8220;<var>curly-foo</var>&#8221;
-(the command prefixed with &#8220;<code>curly-</code>&#8221;) in which
-its standard readers <em>are</em> curly-infix enabled.
-In addition, if the implementation is invokable as
-a graphical user interface (GUI), it
-<em>must</em> provide a documented means to ensure that its
-standard readers are curly-infix enabled on startup.
-</p>
-
-<p>
-An implementation <em>must not</em>, by default, bind the symbol
-&#8220;<var>nfx</var>&#8221; to a procedure, macro, or syntax
+An implementation <em>MUST NOT</em>
+bind the symbols
+&#8220;<var>nfx</var>&#8221; or
+&#8220;<var>$bracket-access$</var>&#8221;
+by default to a procedure, macro, or syntax
 that <em>cannot</em> be overridden.
-An implementation <em>should not</em> bind the symbol
-&#8220;<var>nfx</var>&#8221; to a procedure, macro, or syntax in the
+An implementation <em>SHOULD NOT</em> bind the symbols
+&#8220;<var>nfx</var>&#8221; or
+&#8220;<var>$bracket-access$</var>&#8221;
+to a procedure, macro, or syntax in the
 default environment, with the exception that it
-may bind it by default to something that produces an error.
-This symbol is reserved for use by library writers
+may bind them by default to something that produces an error.
+These two symbols are reserved for use by library writers
 (in the case of a library-based implementation of this SRFI,
-this symbol is reserved for use by <em>other</em> libraries)
+these symbols are
+reserved for use by <em>other</em> libraries)
 and application writers.
 </p>
 <p>
-<em>However</em>, an implementation <em>may</em> provide one or more
+<em>However</em>, an implementation <em>MAY</em>
+provide one or more
 <em>libraries</em> that when imported
-bind the &#8220;<var>nfx</var>&#8221; symbol
+bind the &#8220;<var>nfx</var>&#8221; and/or
+&#8220;<var>$bracket-access$</var>&#8221;
+symbols
 (as it is then a library, this case actually falls under
 the &#8220;reserved for use by library writers&#8221; clause above).
 Application writers and other library writers
 using that implementation are then free to use or not use
-the implementation&#8217;s provided &#8220;<var>nfx</var>&#8221; as provided
-by those libraries.
+the implementation&#8217;s provided
+&#8220;<var>nfx</var>&#8221; and/or
+&#8220;<var>$bracket-access$</var>&#8221;
+as provided by those libraries.
 </p>
 
 <p>
-Implementations <em>may</em> provide the procedure
-<var>(curly-infix-read .  port)</var> as a curly-infix reader.
+Implementations <em>MAY</em> provide the procedure
+<var>curly-infix-read</var> as a
+curly-infix reader.
+If provided, this procedure
+<em>SHOULD</em> support an optional port parameter.
 </p>
 
 <p>
@@ -423,7 +431,7 @@ Security implication: If the implementation does not check for
 circularity when doing equality comparisons, and a supplier of
 malicious data can specify a circularity,
 the reader could fail to terminate when comparing infix operators.
-In the worst case this could cause a a denial of service.
+In the worst case this could cause a denial of service.
 A solution is to check for circularity when comparing operators.
 </p>
 
@@ -518,14 +526,6 @@ character encoding problems, and they are harder to enter on many keyboards.
 In contrast, curly braces are in the ASCII character set and are
 already available for this purpose.
 They do not have a standardized meaning in any Scheme specification.
-<!-- Status unclear at time of this writing, so omitted:
-There is even a Scheme
-<a href="http://trac.sacrideo.us/wg/ticket/468">R7RS ticket #468</a>
-that would expressly forbid brackets and curly braces in identifiers;
-if accepted (which seems likely at this writing) it would even further
-enshrine the notion that braces are special and should be reserved
-for some special syntactic purpose other than being in identifiers.
--->
 They are also widely available in many other Lisp-derived languages,
 such as Common Lisp
 (as we&#8217;d like this notation to be widely useful across Lisps,
@@ -855,7 +855,7 @@ capability is being used.
 as it <em>is</em> an
 empty list, and this is the likely user meaning (reducing
 unnecessary errors).</p>
-<!-- dwheeler says: I think we have to mention n-expressions and t-expressions
+<!-- dwheeler says: I think we have to mention t-expressions
 here, because they are part of the rationale for these semantics. -->
 <p>The one and two parameter cases are defined in part to reduce user error,
 and in part to provide better support:
@@ -885,35 +885,6 @@ the likely interpretation, and also so that the neoteric-expressions like
 <samp>(f&nbsp;(-&nbsp;x))</samp> are interpreted properly.
 </li>
 </ol>
-
-<h2><a name="rationale_curlyfooconvention">Why the <var>curly-foo</var> convention?</a></h2>
-
-<p>
-We would like to have a convention for users to easily enable curly-infix
-everywhere, e.g.,
-for the default reader (e.g., <var>read</var>), read-eval-print loop (REPL),
-and loader (e.g., <var>load</var>).
-Our ideal would be that implementations would
-enable curly-infix in their normal
-invocation, but some implementers may not want to do that.
-For example, if an implementation already uses braces for a
-different local extension, they may not want to immediately
-switch to curly-infix in their default invocation.
-Thus, if implementers choose to not enable curly-infix in their default
-reader, a conventional command line name &#8220;<var>curly-foo</var>&#8221;
-is defined for each implementation <var>foo</var> that enables it.
-Implementations may have a host of special command-line invocation names,
-but presumably one or a few are the usual invocation commands; there
-is no requirement to have a curly-foo alternative for a rarely-used
-invocation.</p>
-
-<p>There is simply no single option flag (for example) that
-everyone could agree on to enable curly-infix.
-In practice, we expect that implementations will build this capability
-into their default readers and then control it via
-some special flag, but we do
-not want to mandate exactly how it this capability is turned on or
-passed to the reader.</p>
 
 <h2><a name="rationale_marker">Why a marker starting with <var>#!</var> and a letter?</a></h2>
 
@@ -1553,10 +1524,13 @@ Scheme provides no standard mechanism to override
 built-in reader. Thus, implementations will typically have a
 modified reader that detects &#8220;<code>{</code>&#8220;, starts reading a list
 until its matching &#8220;<code>}</code>&#8221;, and then calls <var>process-curly</var>
-defined below. We recommend that implementations <em>always</em> do
-this, but an implementation must at least activate this behavior
-when &#8220;<var>curly-foo</var>&#8221; is invoked
-or when they read <var>#!curly-infix</var> followed by whitespace.
+defined below.
+Implementations should <em>always</em> do
+this, but an implementation tht complies with this SRFI must
+at least activate this behavior
+when they read the <var>#!curly-infix</var> marker
+followed by whitespace.
+</p>
 <p>This reference implementation is SRFI type 2: &#8220;A
 mostly-portable solution that uses some kind of hooks provided in
 some Scheme interpreter/compiler. In this case, a detailed
@@ -2040,7 +2014,8 @@ part 2.
 <h1><a name="acknowledgments">Acknowledgments</a></h1>
 <p>We thank all the participants on the &#8220;readable-discuss&#8221;
 and &#8220;SRFI-105&#8221; mailing lists,
-including John Cowan, Shiro Kawai, and many others whose names
+including John Cowan, Shiro Kawai, Per Bothner,
+and many others whose names
 should be here but aren&#8217;t.</p>
 
 <h1 id="copyright">Copyright</h1>
