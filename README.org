@@ -1,6 +1,8 @@
 * SRFI 105: Curly-infix-expressions
 
-** by David A. Wheeler, Alan Manuel K. Gloria
+** by David A. Wheeler and Alan Manuel K. Gloria
+
+
 
 This repository hosts [[https://srfi.schemers.org/srfi-105/][SRFI 105]]: Curly-infix-expressions, a [[https://srfi.schemers.org/][Scheme Request for Implementation]].
 
