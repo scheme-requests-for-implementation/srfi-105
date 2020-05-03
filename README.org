@@ -4,6 +4,8 @@
 
 
 
+keywords: [[https://srfi.schemers.org/?keywords=reader-syntax][Reader Syntax]]
+
 This repository hosts [[https://srfi.schemers.org/srfi-105/][SRFI 105]]: Curly-infix-expressions, a [[https://srfi.schemers.org/][Scheme Request for Implementation]].
 
 This SRFI is in /final/ status.
